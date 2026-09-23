@@ -17,7 +17,20 @@ Redis connection pool executing cursor-based, non-blocking `SCAN` and batched `D
 * `SCAN_BATCH_SIZE`
 
 ## Quick Start & Usage
-Provide a target namespace prefix to the CLI tool to initiate a non-blocking cache purge.
+```bash
+pip install -r requirements.txt
+cp .env.example .env   # then edit REDIS_URL / RESET_PATTERN_PREFIX as needed
 
-## Testing & CI
-Integration tests require an active local Redis instance mapped via Docker to validate deletion atomicity.
+# Preview what would be deleted, without deleting anything
+python main.py --prefix "session:*" --dry-run
+
+# Purge a namespace (prompts for confirmation)
+python main.py --prefix "session:*"
+
+# Skip the confirmation prompt (e.g. in scripts/CI)
+python main.py --prefix "cache:*" --yes
+```
+
+All options can also be set via environment variables (`REDIS_URL`, `RESET_PATTERN_PREFIX`,
+`SCAN_BATCH_SIZE`); CLI flags take precedence. Deletion is cursor-based (`SCAN` + batched
+`DEL`), so it never blocks the Redis event loop even on large namespaces.
